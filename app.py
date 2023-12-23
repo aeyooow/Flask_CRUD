@@ -1,9 +1,19 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
 import mysql.connector
 import xmltodict
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+
 
 
 app = Flask(__name__)
+app.config['JWT_SECRET_KEY'] = '1234'  # Change this to a secure secret key
+jwt = JWTManager(app)
+
+# Mock user data for demonstration purposes
+users = {
+    'admin': 'password',
+    'username': 'password',
+}
 
 # MySQL database connection configuration
 db_config = {
@@ -16,6 +26,31 @@ db_config = {
 # Create MySQL connection
 conn = mysql.connector.connect(**db_config)
 cursor = conn.cursor()
+
+################################
+# Endpoint for user login and token generation
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+
+        if username in users and users[username] == password:
+            access_token = create_access_token(identity=username)
+            return jsonify(access_token=access_token), 200
+        else:
+            return jsonify({'error': 'Invalid credentials'}), 401
+    else:
+        return jsonify({'message': 'Use POST method to log in'}), 200
+
+# Protected endpoint requiring a valid JWT
+@app.route('/protected', methods=['GET'])
+@jwt_required()
+def protected():
+    current_user = get_jwt_identity()
+    return jsonify(logged_in_as=current_user), 200
+
 
 ##################################
 # CRUD operations for customers
