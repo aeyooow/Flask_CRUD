@@ -1,6 +1,7 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template, redirect, url_for
 import mysql.connector
 import xmltodict
+
 
 app = Flask(__name__)
 
@@ -16,32 +17,28 @@ db_config = {
 conn = mysql.connector.connect(**db_config)
 cursor = conn.cursor()
 
-def convert_to_xml(data, root_name, item_name):
-    xml_data = xmltodict.unparse({root_name: {item_name: data}}, full_document=False)
-    return xml_data, 200, {'Content-Type': 'application/xml'}
-
+##################################
 # CRUD operations for customers
 
-@app.route('/customers', methods=['GET'])
+# Helper function to retrieve a customer by ID
+def get_customer_by_id(customer_id):
+    cursor.execute("SELECT * FROM customers WHERE customers_id = %s", (customer_id,))
+    return cursor.fetchone()
 
-def get_all_customers():
+#Customer's table
+@app.route('/customers', methods=['GET'])
+def render_customers_table():
     cursor.execute("SELECT * FROM customers")
     customers = cursor.fetchall()
-    return jsonify({'customers': customers})
+    return render_template('customers_table.html', customers=customers)
 
-@app.route('/customers/<int:customer_id>', methods=['GET'])
+# Render the create customer form
+@app.route('/customers/create', methods=['GET'])
+def render_create_customer_form():
+    return render_template('create_customer.html')
 
-def get_customer(customer_id):
-    cursor.execute("SELECT * FROM customers WHERE customers_id = %s", (customer_id,))
-    customer = cursor.fetchone()
-
-    if customer:
-        return jsonify({'customer': customer})
-    else:
-        return jsonify({'error': 'Customer not found'}), 404
-
+# Handle form submission for creating a customer
 @app.route('/customers', methods=['POST'])
-
 def create_customer():
     data = request.json
 
@@ -71,72 +68,101 @@ def create_customer():
 
     return jsonify({'message': 'Customer created successfully'}), 201
 
-@app.route('/customers/<int:customer_id>', methods=['PUT'])
 
-def update_customer(customer_id):
-    data = request.json
+# Render the edit customer form
+@app.route('/customers/<int:customer_id>/edit', methods=['GET', 'POST'])
+def render_edit_customer_form(customer_id):
+    customer = get_customer_by_id(customer_id)
+    if not customer:
+        return jsonify({'error': 'Customer not found'}), 404
 
-    if not all(key in data for key in ['customer_first_name', 'customer_last_name', 'email_address']):
-        return jsonify({'error': 'Missing required fields'}), 400
+    if request.method == 'POST':
+        # Update customer data based on the form submission
+        customer_data = {
+            'customer_first_name': request.form['customer_first_name'],
+            'customer_middle_initial': request.form['customer_middle_initial'],
+            'customer_last_name': request.form['customer_last_name'],
+            'gender': request.form['gender'],
+            'email_address': request.form['email_address'],
+            'phone_number': request.form['phone_number'],
+            'address_line_1': request.form['address_line_1'],
+            'address_line_2': request.form['address_line_2'],
+            'address_line_3': request.form['address_line_3'],
+            'address_line_4': request.form['address_line_4'],
+            'town_city': request.form['town_city'],
+            'state_country_province': request.form['state_country_province'],
+            'country': request.form['country'],
+            'other_details': request.form['other_details'],
+        }
 
-    query = """
-    UPDATE customers 
-    SET 
-    customer_first_name = %s, 
-    customer_middle_initial = %s,
-    customer_last_name = %s, 
-    gender = %s, 
-    email_address = %s, 
-    phone_number = %s, 
-    address_line_1 = %s, 
-    address_line_2 = %s, 
-    address_line_3 = %s, 
-    address_line_4 = %s, 
-    town_city = %s, 
-    state_country_province = %s, 
-    country = %s, 
-    other_details = %s
-    WHERE customers_id = %s
-    """
+        # Update the customer in the database
+        update_customer_query = """
+        UPDATE customers
+        SET
+            customer_first_name = %(customer_first_name)s,
+            customer_middle_initial = %(customer_middle_initial)s,
+            customer_last_name = %(customer_last_name)s,
+            gender = %(gender)s,
+            email_address = %(email_address)s,
+            phone_number = %(phone_number)s,
+            address_line_1 = %(address_line_1)s,
+            address_line_2 = %(address_line_2)s,
+            address_line_3 = %(address_line_3)s,
+            address_line_4 = %(address_line_4)s,
+            town_city = %(town_city)s,
+            state_country_province = %(state_country_province)s,
+            country = %(country)s,
+            other_details = %(other_details)s
+        WHERE customers_id = %(customer_id)s
+        """
+
+        customer_data['customer_id'] = customer_id
+        cursor.execute(update_customer_query, customer_data)
+        conn.commit()
+
+        # Redirect to the customers_table page after the update
+        return redirect(url_for('render_customers_table'))
+
+    # If it's a GET request, render the edit form
+    return render_template('edit_customer.html', customer=customer, customer_id=customer_id)
+
+# Render the delete customer confirmation form
+@app.route('/customers/<int:customer_id>/delete', methods=['GET', 'POST'])
+def render_delete_customer_form(customer_id):
+    if request.method == 'GET':
+        customer = get_customer_by_id(customer_id)
+        if not customer:
+            return jsonify({'error': 'Customer not found'}), 404
+
+        return render_template('delete_customer.html', customer=customer, customer_id=customer_id)
     
-    values = (
-        data['customer_first_name'], data.get('customer_middle_initial', ''),
-        data['customer_last_name'], data.get('gender', ''),
-        data['email_address'], data.get('phone_number', ''),
-        data.get('address_line_1', ''), data.get('address_line_2', ''),
-        data.get('address_line_3', ''), data.get('address_line_4', ''),
-        data.get('town_city', ''), data.get('state_country_province', ''),
-        data.get('country', ''), data.get('other_details', ''),
-        customer_id
-    )
+    elif request.method == 'POST':
+        # Handle the actual deletion of the customer
+        query = "DELETE FROM customers WHERE customers_id = %s"
+        values = (customer_id,)
 
-    cursor.execute(query, values)
-    conn.commit()
+        cursor.execute(query, values)
+        conn.commit()
 
-    return jsonify({'message': 'Customer updated successfully'})
+        return jsonify({'message': 'Customer deleted successfully'})
 
-@app.route('/customers/<int:customer_id>', methods=['DELETE'])
+    else:
+        return jsonify({'error': 'Method not allowed'}), 405
 
-def delete_customer(customer_id):
-    query = "DELETE FROM customers WHERE customers_id = %s"
-    values = (customer_id,)
 
-    cursor.execute(query, values)
-    conn.commit()
 
-    return jsonify({'message': 'Customer deleted successfully'})
+
+################################################
 
 # CRUD operations for jobs
 
 @app.route('/jobs', methods=['GET'])
-
 def get_all_jobs():
     cursor.execute("SELECT * FROM jobs")
     jobs = cursor.fetchall()
     return jsonify({'jobs': jobs})
 
 @app.route('/jobs/<int:job_id>', methods=['GET'])
-
 def get_job(job_id):
     cursor.execute("SELECT * FROM jobs WHERE job_id = %s", (job_id,))
     job = cursor.fetchone()
@@ -147,7 +173,6 @@ def get_job(job_id):
         return jsonify({'error': 'Job not found'}), 404
 
 @app.route('/jobs', methods=['POST'])
-
 def create_job():
     data = request.json
 
@@ -170,7 +195,6 @@ def create_job():
     return jsonify({'message': 'Job created successfully'}), 201
 
 @app.route('/jobs/<int:job_id>', methods=['PUT'])
-
 def update_job(job_id):
     data = request.json
 
@@ -208,6 +232,8 @@ def delete_job(job_id):
     conn.commit()
 
     return jsonify({'message': 'Job deleted successfully'})
+
+#################################################
 
 # CRUD operations for order_items
 

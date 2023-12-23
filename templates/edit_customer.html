@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Customer</title>
+</head>
+<body>
+    <h1>Edit Customer</h1>
+    <form action="/customers/{{ customer_id }}/edit" method="POST">
+        <label for="customer_first_name">First Name:</label>
+        <input type="text" name="customer_first_name" value="{{ customer.customer_first_name }}" required>
+        <br>
+
+        <label for="customer_middle_initial">Middle Initial:</label>
+        <input type="text" name="customer_middle_initial" value="{{ customer.customer_middle_initial }}">
+        <br>
+
+        <label for="customer_last_name">Last Name:</label>
+        <input type="text" name="customer_last_name" value="{{ customer.customer_last_name }}" required>
+        <br>
+
+        <label for="gender">Gender:</label>
+        <input type="text" name="gender" value="{{ customer.gender }}">
+        <br>
+
+        <label for="email_address">Email Address:</label>
+        <input type="email" name="email_address" value="{{ customer.email_address }}" required>
+        <br>
+
+        <label for="phone_number">Phone Number:</label>
+        <input type="text" name="phone_number" value="{{ customer.phone_number }}">
+        <br>
+
+        <label for="address_line_1">Address Line 1:</label>
+        <input type="text" name="address_line_1" value="{{ customer.address_line_1 }}">
+        <br>
+
+        <label for="address_line_2">Address Line 2:</label>
+        <input type="text" name="address_line_2" value="{{ customer.address_line_2 }}">
+        <br>
+
+        <label for="address_line_3">Address Line 3:</label>
+        <input type="text" name="address_line_3" value="{{ customer.address_line_3 }}">
+        <br>
+
+        <label for="address_line_4">Address Line 4:</label>
+        <input type="text" name="address_line_4" value="{{ customer.address_line_4 }}">
+        <br>
+
+        <label for="town_city">Town/City:</label>
+        <input type="text" name="town_city" value="{{ customer.town_city }}">
+        <br>
+
+        <label for="state_country_province">State/Country/Province:</label>
+        <input type="text" name="state_country_province" value="{{ customer.state_country_province }}">
+        <br>
+
+        <label for="country">Country:</label>
+        <input type="text" name="country" value="{{ customer.country }}">
+        <br>
+
+        <label for="other_details">Other Details:</label>
+        <input type="text" name="other_details" value="{{ customer.other_details }}">
+        <br>
+
+        <button type="submit">Update Customer</button>
+    </form>
+</body>
+</html>

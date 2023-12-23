@@ -1,0 +1,80 @@
+<!-- templates/customers_table.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Table</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Customer Table</h1>
+    <a href="{{ url_for('render_create_customer_form') }}"><button>Add New Customer</button></a>
+    <a href="{{ url_for('render_search_customer_form') }}"><button>Search Customer</button></a>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>First Name</th>
+                <th>Middle Initial</th>
+                <th>Last Name</th>
+                <th>Gender</th>
+                <th>Email Address</th>
+                <th>Phone Number</th>
+                <th>Address Line 1</th>
+                <th>Address Line 2</th>
+                <th>Address Line 3</th>
+                <th>Address Line 4</th>
+                <th>Town/City</th>
+                <th>State/Country/Province</th>
+                <th>Country</th>
+                <th>Other Details</th>
+                <th>Action</th>
+                <!-- Add more columns as needed -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in customers %}
+                <tr>
+                    <td>{{ customer[0] }}</td>
+                    <td>{{ customer[1] }}</td>
+                    <td>{{ customer[2] }}</td>
+                    <td>{{ customer[3] }}</td>
+                    <td>{{ customer[4] }}</td>
+                    <td>{{ customer[5] }}</td>
+                    <td>{{ customer[6] }}</td>
+                    <td>{{ customer[7] }}</td>
+                    <td>{{ customer[8] }}</td>
+                    <td>{{ customer[9] }}</td>
+                    <td>{{ customer[10] }}</td>
+                    <td>{{ customer[11] }}</td>
+                    <td>{{ customer[12] }}</td>
+                    <td>{{ customer[13] }}</td>
+                    <td>{{ customer[14] }}</td>
+                    <td class="actions">
+                        <a href="{{ url_for('render_edit_customer_form', customer_id=customer[0]) }}">Edit</a>
+                        | 
+                        <a href="{{ url_for('render_delete_customer_form', customer_id=customer[0]) }}" onclick="return confirm('Are you sure you want to delete this customer?')">Delete</a>
+                    </td>
+                    <!-- Adjust the indices based on your database schema -->
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

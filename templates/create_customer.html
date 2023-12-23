@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Customer</title>
+</head>
+<body>
+
+<h1>Create Customer</h1>
+<form id="customerForm" method="post" action="/customers" enctype="application/json">
+    <label for="customer_first_name">First Name:</label>
+    <input type="text" name="customer_first_name" required>
+    <br>
+    <label for="customer_middle_initial">Middle Initial:</label>
+    <input type="text" name="customer_middle_initial">
+    <br>
+    <label for="customer_last_name">Last Name:</label>
+    <input type="text" name="customer_last_name" required>
+    <br>
+    <label for="gender">Gender:</label>
+    <input type="text" name="gender">
+    <br>
+    <label for="email_address">Email Address:</label>
+    <input type="email" name="email_address" required>
+    <br>
+    <label for="phone_number">Phone Number:</label>
+    <input type="text" name="phone_number">
+    <br>
+    <label for="address_line_1">Address Line 1:</label>
+    <input type="text" name="address_line_1">
+    <br>
+    <label for="address_line_2">Address Line 2:</label>
+    <input type="text" name="address_line_2">
+    <br>
+    <label for="address_line_3">Address Line 3:</label>
+    <input type="text" name="address_line_3">
+    <br>
+    <label for="address_line_4">Address Line 4:</label>
+    <input type="text" name="address_line_4">
+    <br>
+    <label for="town_city">Town/City:</label>
+    <input type="text" name="town_city">
+    <br>
+    <label for="state_country_province">State/Country/Province:</label>
+    <input type="text" name="state_country_province">
+    <br>
+    <label for="country">Country:</label>
+    <input type="text" name="country">
+    <br>
+    <label for="other_details">Other Details:</label>
+    <input type="text" name="other_details">
+    <br>
+    <input type="submit" value="Submit" onclick="submitForm(event)">
+</form>
+
+<script>
+function submitForm(event) {
+    event.preventDefault(); // Prevent the default form submission
+
+    // Get form data and convert to JSON
+    const formData = {
+        customer_first_name: document.getElementsByName("customer_first_name")[0].value,
+        customer_middle_initial: document.getElementsByName("customer_middle_initial")[0].value,
+        customer_last_name: document.getElementsByName("customer_last_name")[0].value,
+        gender: document.getElementsByName("gender")[0].value,
+        email_address: document.getElementsByName("email_address")[0].value,
+        phone_number: document.getElementsByName("phone_number")[0].value,
+        address_line_1: document.getElementsByName("address_line_1")[0].value,
+        address_line_2: document.getElementsByName("address_line_2")[0].value,
+        address_line_3: document.getElementsByName("address_line_3")[0].value,
+        address_line_4: document.getElementsByName("address_line_4")[0].value,
+        town_city: document.getElementsByName("town_city")[0].value,
+        state_country_province: document.getElementsByName("state_country_province")[0].value,
+        country: document.getElementsByName("country")[0].value,
+        other_details: document.getElementsByName("other_details")[0].value,
+    };
+
+    // Make a POST request using fetch API
+    fetch('/customers', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Success:', data);
+        alert('Customer created successfully');
+        // Optionally, you can redirect or perform other actions on success
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        alert('Error creating customer');
+    });
+}
+</script>
+
+</body>
+</html>
