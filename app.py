@@ -1,89 +1,100 @@
 from flask import Flask, request, jsonify
 import mysql.connector
+import xmltodict
 
 app = Flask(__name__)
 
+# MySQL database connection configuration
 db_config = {
     'host': 'localhost',
     'user': 'root',
     'password': 'root',
-    'database': 'customersandjobsdatamodel',
+    'database': 'customersandjobsdatamodel',  # Replace 'your_database_name' with your actual database name
 }
 
+# Create MySQL connection
 conn = mysql.connector.connect(**db_config)
 cursor = conn.cursor()
 
+def convert_to_xml(data, root_name, item_name):
+    xml_data = xmltodict.unparse({root_name: {item_name: data}}, full_document=False)
+    return xml_data, 200, {'Content-Type': 'application/xml'}
 
+# Customers Routes
 @app.route('/customers', methods=['GET'])
 def get_all_customers():
-    try:
-        cursor.execute("SELECT * FROM customers")
-        customers = cursor.fetchall()
-        return jsonify(customers)
-    except mysql.connector.Error as err:
-        return jsonify({'error': f"Database error: {err}"}), 500
+    format_type = request.args.get('format', 'json')  # Default to JSON if format not specified
+    cursor.execute("SELECT * FROM customers")
+    customers = cursor.fetchall()
+
+    if format_type.lower() == 'xml':
+        return convert_to_xml(customers, 'customers', 'customer')
+    else:
+        return jsonify({'customers': customers})
 
 @app.route('/customers/<int:customer_id>', methods=['GET'])
 def get_customer(customer_id):
-    try:
-        cursor.execute("SELECT * FROM customers WHERE customers_id = %s", (customer_id,))
-        customer = cursor.fetchone()
+    format_type = request.args.get('format', 'json')  # Default to JSON if format not specified
+    cursor.execute("SELECT * FROM customers WHERE customers_id = %s", (customer_id,))
+    customer = cursor.fetchone()
 
-        if customer:
-            return jsonify(customer)
+    if customer:
+        if format_type.lower() == 'xml':
+            return convert_to_xml(customer, 'customer', 'customer')
         else:
-            return jsonify({'error': 'Customer not found'}), 404
-    except mysql.connector.Error as err:
-        return jsonify({'error': f"Database error: {err}"}), 500
+            return jsonify(customer)
+    else:
+        return jsonify({'error': 'Customer not found'}), 404
 
-@app.route('/customers', methods=['POST'])
-def create_customer():
-    try:
-        data = request.json
+# Jobs Routes
+@app.route('/jobs', methods=['GET'])
+def get_all_jobs():
+    format_type = request.args.get('format', 'json')  # Default to JSON if format not specified
+    cursor.execute("SELECT * FROM jobs")
+    jobs = cursor.fetchall()
 
-        if not all(key in data for key in ['customer_first_name', 'customer_last_name', 'email_address']):
-            return jsonify({'error': 'Missing required fields'}), 400
+    if format_type.lower() == 'xml':
+        return convert_to_xml(jobs, 'jobs', 'job')
+    else:
+        return jsonify({'jobs': jobs})
 
-        query = "INSERT INTO customers (customer_first_name, customer_last_name, email_address) VALUES (%s, %s, %s)"
-        values = (data['customer_first_name'], data['customer_last_name'], data['email_address'])
+@app.route('/jobs/<int:job_id>', methods=['GET'])
+def get_job(job_id):
+    format_type = request.args.get('format', 'json')  # Default to JSON if format not specified
+    cursor.execute("SELECT * FROM jobs WHERE job_id = %s", (job_id,))
+    job = cursor.fetchone()
 
-        cursor.execute(query, values)
-        conn.commit()
+    if job:
+        if format_type.lower() == 'xml':
+            return convert_to_xml(job, 'job', 'job')
+        else:
+            return jsonify(job)
+    else:
+        return jsonify({'error': 'Job not found'}), 404
 
-        return jsonify({'message': 'Customer created successfully'}), 201
-    except mysql.connector.Error as err:
-        return jsonify({'error': f"Database error: {err}"}), 500
+# Order Items Routes
+@app.route('/order_items', methods=['GET'])
+def get_all_order_items():
+    format_type = request.args.get('format', 'json')  # Default to JSON if format not specified
+    cursor.execute("SELECT * FROM order_items")
+    order_items = cursor.fetchall()
 
-@app.route('/customers/<int:customer_id>', methods=['PUT'])
-def update_customer(customer_id):
-    try:
-        data = request.json
+    if format_type.lower() == 'xml':
+        return convert_to_xml(order_items, 'order_items', 'order_item')
+    else:
+        return jsonify({'order_items': order_items})
 
-        if not all(key in data for key in ['customer_first_name', 'customer_last_name', 'email_address']):
-            return jsonify({'error': 'Missing required fields'}), 400
+# Standard Tasks Routes
+@app.route('/standard_tasks', methods=['GET'])
+def get_all_standard_tasks():
+    format_type = request.args.get('format', 'json')  # Default to JSON if format not specified
+    cursor.execute("SELECT * FROM standard_tasks")
+    standard_tasks = cursor.fetchall()
 
-        query = "UPDATE customers SET customer_first_name = %s, customer_last_name = %s, email_address = %s WHERE customers_id = %s"
-        values = (data['customer_first_name'], data['customer_last_name'], data['email_address'], customer_id)
-
-        cursor.execute(query, values)
-        conn.commit()
-
-        return jsonify({'message': 'Customer updated successfully'})
-    except mysql.connector.Error as err:
-        return jsonify({'error': f"Database error: {err}"}), 500
-
-@app.route('/customers/<int:customer_id>', methods=['DELETE'])
-def delete_customer(customer_id):
-    try:
-        query = "DELETE FROM customers WHERE customers_id = %s"
-        values = (customer_id,)
-
-        cursor.execute(query, values)
-        conn.commit()
-
-        return jsonify({'message': 'Customer deleted successfully'})
-    except mysql.connector.Error as err:
-        return jsonify({'error': f"Database error: {err}"}), 500
+    if format_type.lower() == 'xml':
+        return convert_to_xml(standard_tasks, 'standard_tasks', 'standard_task')
+    else:
+        return jsonify({'standard_tasks': standard_tasks})
 
 # Error handling
 @app.errorhandler(404)
