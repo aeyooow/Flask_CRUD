@@ -25,6 +25,20 @@ def get_customer_by_id(customer_id):
     cursor.execute("SELECT * FROM customers WHERE customers_id = %s", (customer_id,))
     return cursor.fetchone()
 
+
+
+# Logic to retrieve search results
+def get_search_results(search_criteria):
+    search_query = """
+    SELECT * FROM customers
+    WHERE customer_first_name LIKE %s
+    """
+
+    cursor.execute(search_query, ('%' + search_criteria + '%',))
+    search_results = cursor.fetchall()
+    
+    return search_results
+
 #Customer's table
 @app.route('/customers', methods=['GET'])
 def render_customers_table():
@@ -149,8 +163,35 @@ def render_delete_customer_form(customer_id):
     else:
         return jsonify({'error': 'Method not allowed'}), 405
 
+# Route for handling search form submission
+@app.route('/search', methods=['POST'])
+def search():
+    search_criteria = request.form.get('search_criteria', '')
 
+    # Logic to retrieve search results based on the criteria
+    search_query = """
+    SELECT * FROM customers
+    WHERE customer_first_name LIKE %s
+    """
 
+    cursor.execute(search_query, ('%' + search_criteria + '%',))
+    search_results = cursor.fetchall()
+
+    # Extract column names from the cursor description
+    column_names = [desc[0] for desc in cursor.description]
+
+    # Debugging: Print column_names
+    print(column_names)
+
+    return render_template('search_results.html', search_results=search_results, column_names=column_names)
+
+# Route for displaying search results
+@app.route('/search_results', methods=['GET'])
+def search_results():
+    search_criteria = request.args.get('search_criteria', '')  # Assuming you use a GET request to pass the search criteria
+    search_results = get_search_results(search_criteria)
+    
+    return render_template('search_results.html', search_results=search_results)
 
 ################################################
 
