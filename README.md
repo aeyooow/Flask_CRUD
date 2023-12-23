@@ -33,7 +33,7 @@ This is just a simple CRUD of customers table in customers and jobs data model (
 ### POST /users
 
    ```http
-   http://127.0.0.1:5000/login
+   #http://127.0.0.1:5000/login
    users:{
      "admin": "password",
      "username": "password"
@@ -42,8 +42,8 @@ This is just a simple CRUD of customers table in customers and jobs data model (
 
 ### TESTING
   ```bash
-curl -X POST -H "Content-Type: application/json" -d "{\"username\":\"admin\",\"password\":\"password\"}" http://127.0.0.1:5000/login
-curl -X GET -H "Authorization: Bearer <the key>" http://127.0.0.1:5000/protected
-start http://127.0.0.1:5000/customers
+      curl -X POST -H "Content-Type: application/json" -d "{\"username\":\"admin\",\"password\":\"password\"}" http://127.0.0.1:5000/login
+      curl -X GET -H "Authorization: Bearer <the key>" http://127.0.0.1:5000/protected
+      start http://127.0.0.1:5000/customers
 ```
 
