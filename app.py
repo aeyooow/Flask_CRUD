@@ -4,7 +4,6 @@ import xmltodict
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
 
-
 app = Flask(__name__)
 app.config['JWT_SECRET_KEY'] = '1234'  # Change this to a secure secret key
 jwt = JWTManager(app)
